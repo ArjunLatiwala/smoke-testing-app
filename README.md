@@ -1,42 +1,61 @@
-# Project Name: Simple Login System
+# Smoke Testing & CI/CD Pipeline Demo
 
-## Description
+> Forked from [eman289/smart-login-system](https://github.com/eman289/smart-login-system) — a static web app built with HTML, CSS and JavaScript.
 
-This project is a simple login system implemented using JavaScript. It consists of three pages: a signup page, a sign-in page, and a home page that displays a personalized welcome message for the user.
+---
 
-The signup page allows users to create an account by providing their name, email, and password. The entered information is validated, and upon successful signup, the user's data is stored locally.
+## What I Added
 
-The sign-in page verifies user credentials against the stored account information. If the provided email and password match an existing user, the user is directed to the home page.
+This fork adds two DevOps files on top of the original project:
 
-The home page displays a welcome message using the user's name retrieved from local storage. Users can also log out from the home page, which redirects them to the sign-in page.
+- **`Dockerfile`** — containerizes the static site using nginx so it can be deployed anywhere
+- **`.github/workflows/ci_cd.yml`** — GitHub Actions pipeline that runs on every push to main
 
-## Technologies Used
+---
 
-- HTML
-- CSS
-- JavaScript
+## CI/CD Pipeline
 
-## Project Structure
+The pipeline automates 3 things: smoke testing, building a Docker image, and pushing it to DockerHub.
 
-The project consists of the following files:
+```
+Push to main
+     ↓
+Checkout code
+     ↓
+Start Python web server (serves static files on port 3000)
+     ↓
+Smoke Test → curl index.html → is app responding?
+    YES → Build Docker image → Push to DockerHub
+    NO  → Pipeline stops, nothing gets built or pushed
+```
 
-1. `index.html`: The main entry point for the sign-in page.
-2. `signup.html`: Page for user registration.
-3. `home.html`: Page displaying the welcome message for authenticated users.
+### Why Smoke Testing?
+Smoke testing is a quick sanity check — it doesn't test every feature, it just checks if the app is alive and responding. If it fails, there's no point building or deploying a broken image.
 
-## Usage
+---
 
-1. Click the "Sign Up" link on the sign-in page to access the registration page.
-2. Fill out the registration form and click "Sign Up" to create an account.
-3. Click the "Log in" link to access the sign-in page.
-4. Use the email and password you used to log in.
-5. After logging in, you'll be redirected to the home page, where your name will be displayed in the welcome message.
-6. Click the "Log Out" button on the home page to log out and return to the sign-in page.
+## Dockerfile
 
-## GitHub Pages
+```dockerfile
+FROM nginx:alpine
+COPY . /usr/share/nginx/html
+EXPOSE 80
+```
 
-The project is hosted on GitHub Pages. You can access it [here](https://eman289.github.io/smart-login-system/).
+Copies all static files into nginx's serving directory and exposes port 80.
 
-## Note
+---
 
-This project's functionality is basic and might not cover all security and validation aspects required for a production-level application. It's recommended to enhance security measures and error handling for a real-world deployment.
+## GitHub Secrets Required
+
+Add these in **Settings → Secrets → Actions** before running the pipeline:
+
+| Secret | Description |
+|---|---|
+| `DOCKERHUB_USERNAME` | Your DockerHub username |
+| `DOCKERHUB_PASSWORD` | Your DockerHub password or access token |
+
+---
+
+## Credits
+Original project by [eman289](https://github.com/eman289/smart-login-system)
